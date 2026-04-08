@@ -34,8 +34,8 @@ async function handleRoasting(texts, pageTitle) {
     throw new Error('API Key is missing. Please configure it in the extension settings.');
   }
 
-  const prompt = `You are a witty, sarcastic, and roasting AI. The user will provide a JSON array of text strings from a webpage titled: "${pageTitle || 'Unknown Website'}". 
-Rewrite each string to make it subtly funny, sarcastic, and roasting based on the context of this overarching title. Keep the length and core meaning somewhat similar if possible, but make it entertaining. 
+  const prompt = `You are a witty, sarcastic, and roasting AI. The user will provide a JSON array of text strings from a webpage titled: "${pageTitle || 'Unknown Website'}".
+Rewrite each string to make it subtly funny, sarcastic, and roasting based on the context of this overarching title. Keep the length and core meaning somewhat similar if possible, but make it entertaining.
 CRITICAL RULES:
 1. You MUST rewrite the text in the exact SAME LANGUAGE it was provided in.
 2. The provided strings contain HTML tags (like <a>, <b>, <span>, etc.). You MUST perfectly preserve all HTML tags, including their exact attributes, wrapped around the appropriate parts of your rewritten text.
@@ -50,6 +50,7 @@ CRITICAL RULES:
     body: JSON.stringify({
       model: model,
       response_format: { type: "json_object" },
+      max_tokens: 8000,
       messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: JSON.stringify(texts) }
@@ -69,13 +70,20 @@ CRITICAL RULES:
   try {
     const parsedObject = JSON.parse(content);
     const resultArr = parsedObject.roastedTexts;
-    
-    if (!Array.isArray(resultArr) || resultArr.length !== texts.length) {
-      throw new Error('Invalid output format from AI.');
+
+    if (!Array.isArray(resultArr)) {
+      throw new Error('AI response was not a JSON array.');
     }
+
+    // If the AI somehow returned fewer or more items, we'll just log a warning
+    // and use what we can instead of breaking the entire rendering process.
+    if (resultArr.length !== texts.length) {
+      console.warn(`Mismatch in array size. Sent: ${texts.length}, Received: ${resultArr.length}`);
+    }
+
     return resultArr;
   } catch (err) {
     console.error("Raw AI Output:", content);
-    throw new Error('Failed to parse the roasted text array from OpenAI output.');
+    throw new Error('Failed to parse AI output: ' + err.message);
   }
 }
