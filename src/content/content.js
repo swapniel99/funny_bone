@@ -40,7 +40,7 @@ async function startRoast() {
   try {
     for (let i = 0; i < validElements.length; i += CHUNK_SIZE) {
       const targetElements = validElements.slice(i, i + CHUNK_SIZE);
-      const texts = targetElements.map(el => el.innerText.trim());
+      const texts = targetElements.map(el => el.innerHTML.trim());
 
       // Show a loading state on the elements actively being processed in this chunk
       targetElements.forEach(el => {
@@ -61,7 +61,7 @@ async function startRoast() {
             // Replace text with a nice fade effect
             el.style.opacity = '0';
             setTimeout(() => {
-              el.innerText = roasted[index];
+              el.innerHTML = roasted[index];
               el.dataset.roasted = "true";
               el.style.opacity = '1';
               el.style.color = '#e52e71'; // Give it a slight brand color tint to indicate it was roasted
@@ -90,14 +90,16 @@ async function startRoast() {
 
 async function startRoastSelection() {
   const selection = window.getSelection();
-  const text = selection.toString().trim();
-
-  if (!text) return;
-  if (isRoasting) return;
   
-  // Capture and clone the user's exact selection range BEFORE making any async network calls
-  // Otherwise clicking anywhere on the page while loading will destroy the selection!
-  const range = selection.getRangeAt(0).cloneRange();
+  if (selection.isCollapsed || isRoasting) return;
+  
+  // Capture HTML instead of just text
+  const div = document.createElement('div');
+  const originalRange = selection.getRangeAt(0).cloneRange();
+  div.appendChild(originalRange.cloneContents());
+  const textHtml = div.innerHTML.trim();
+
+  if (!textHtml) return;
   
   isRoasting = true;
 
@@ -105,17 +107,17 @@ async function startRoastSelection() {
     const response = await chrome.runtime.sendMessage({
       action: 'roastTextNodes',
       pageTitle: document.title,
-      texts: [text]
+      texts: [textHtml]
     });
 
     if (response && response.success && response.roastedTexts && response.roastedTexts.length > 0) {
       const roastedText = response.roastedTexts[0];
 
       // Replace the selected text in the DOM using our cached range
-      range.deleteContents();
+      originalRange.deleteContents();
       
       const span = document.createElement('span');
-      span.innerText = roastedText;
+      span.innerHTML = roastedText;
       span.style.color = '#e52e71';
       span.dataset.roasted = "true";
       span.style.transition = 'opacity 0.3s';
