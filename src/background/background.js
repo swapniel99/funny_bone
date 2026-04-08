@@ -39,7 +39,7 @@ Rewrite each string to make it subtly funny, sarcastic, and roasting based on th
 CRITICAL RULES:
 1. You MUST rewrite the text in the exact SAME LANGUAGE it was provided in.
 2. The provided strings contain HTML tags (like <a>, <b>, <span>, etc.). You MUST perfectly preserve all HTML tags, including their exact attributes, wrapped around the appropriate parts of your rewritten text.
-3. Return ONLY a valid JSON array of strings in the exact same order. Do not wrap it in markdown block quotes.`;
+3. Return a valid JSON object with exactly one key named "roastedTexts", whose value is the array of your rewritten strings in the exact same order. Do not return anything else.`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -49,6 +49,7 @@ CRITICAL RULES:
     },
     body: JSON.stringify({
       model: model,
+      response_format: { type: "json_object" },
       messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: JSON.stringify(texts) }
@@ -66,17 +67,9 @@ CRITICAL RULES:
   const content = data.choices[0].message.content;
 
   try {
-    // Attempt to parse the response as JSON (could be wrapped in ```json)
-    let cleanedContent = content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const parsedObject = JSON.parse(content);
+    const resultArr = parsedObject.roastedTexts;
     
-    // Extract everything between the first '[' and the last ']'
-    const startIndex = cleanedContent.indexOf('[');
-    const endIndex = cleanedContent.lastIndexOf(']');
-    if (startIndex !== -1 && endIndex !== -1) {
-      cleanedContent = cleanedContent.substring(startIndex, endIndex + 1);
-    }
-
-    const resultArr = JSON.parse(cleanedContent);
     if (!Array.isArray(resultArr) || resultArr.length !== texts.length) {
       throw new Error('Invalid output format from AI.');
     }

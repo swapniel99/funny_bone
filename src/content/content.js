@@ -34,8 +34,8 @@ async function startRoast() {
     return;
   }
 
-  // Process in batches of 10 to avoid massive payloads
-  const CHUNK_SIZE = 10;
+  // Process in batches to avoid massive payloads
+  const CHUNK_SIZE = 5;
 
   try {
     for (let i = 0; i < validElements.length; i += CHUNK_SIZE) {
@@ -90,9 +90,9 @@ async function startRoast() {
 
 async function startRoastSelection() {
   const selection = window.getSelection();
-  
+
   if (selection.isCollapsed || isRoasting) return;
-  
+
   // Capture HTML instead of just text
   const div = document.createElement('div');
   const originalRange = selection.getRangeAt(0).cloneRange();
@@ -100,7 +100,7 @@ async function startRoastSelection() {
   const textHtml = div.innerHTML.trim();
 
   if (!textHtml) return;
-  
+
   isRoasting = true;
 
   try {
@@ -115,21 +115,21 @@ async function startRoastSelection() {
 
       // Replace the selected text in the DOM using our cached range
       originalRange.deleteContents();
-      
+
       const span = document.createElement('span');
       span.innerHTML = roastedText;
       span.style.color = '#e52e71';
       span.dataset.roasted = "true";
       span.style.transition = 'opacity 0.3s';
       span.style.opacity = '0';
-      
-      range.insertNode(span);
-      
+
+      originalRange.insertNode(span);
+
       // Fade it in to match aesthetics
       setTimeout(() => {
         span.style.opacity = '1';
       }, 50);
-      
+
       selection.removeAllRanges();
     } else {
       console.error("Funny Bone Error on selection:", response?.error);
