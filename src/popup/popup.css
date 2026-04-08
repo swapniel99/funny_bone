@@ -108,3 +108,17 @@ input:checked + .slider:before {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+#settingsBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+#settingsBtn:hover {
+  opacity: 1.0;
+}

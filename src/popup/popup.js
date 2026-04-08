@@ -21,6 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Handle settings button click
+  document.getElementById('settingsBtn').addEventListener('click', () => {
+    if (chrome.runtime.openOptionsPage) {
+      chrome.runtime.openOptionsPage();
+    } else {
+      window.open(chrome.runtime.getURL('src/options/options.html'));
+    }
+  });
+
   // Handle roast button click
   roastBtn.addEventListener('click', () => {
     triggerRoast({ auto: false });
