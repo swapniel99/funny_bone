@@ -32,47 +32,54 @@ async function startRoast() {
     return;
   }
 
-  // To avoid massive payloads, let's batch them or just take the first ~50 elements
-  const MAX_ELEMENTS = 40;
-  const targetElements = validElements.slice(0, MAX_ELEMENTS);
+  // Process in batches of 40 to avoid massive payloads
+  const CHUNK_SIZE = 40;
   
-  const texts = targetElements.map(el => el.innerText.trim());
-
-  // Show a loading state on elements
-  targetElements.forEach(el => {
+  // Show a loading state on all elements immediately
+  validElements.forEach(el => {
     el.style.transition = 'opacity 0.3s';
     el.style.opacity = '0.5';
   });
 
   try {
-    const response = await chrome.runtime.sendMessage({
-      action: 'roastTextNodes',
-      texts: texts
-    });
+    for (let i = 0; i < validElements.length; i += CHUNK_SIZE) {
+      const targetElements = validElements.slice(i, i + CHUNK_SIZE);
+      const texts = targetElements.map(el => el.innerText.trim());
 
-    if (response && response.success && response.roastedTexts) {
-      const roasted = response.roastedTexts;
-      targetElements.forEach((el, index) => {
-        if (roasted[index]) {
-          // Replace text with a nice fade effect
-          el.style.opacity = '0';
-          setTimeout(() => {
-            el.innerText = roasted[index];
-            el.dataset.roasted = "true";
-            el.style.opacity = '1';
-            el.style.color = '#e52e71'; // Give it a slight brand color tint to indicate it was roasted
-          }, 300);
-        } else {
-          el.style.opacity = '1';
-        }
+      const response = await chrome.runtime.sendMessage({
+        action: 'roastTextNodes',
+        texts: texts
       });
-    } else {
-      console.error("Funny Bone Error:", response?.error);
-      targetElements.forEach(el => el.style.opacity = '1');
+
+      if (response && response.success && response.roastedTexts) {
+        const roasted = response.roastedTexts;
+        targetElements.forEach((el, index) => {
+          if (roasted[index]) {
+            // Replace text with a nice fade effect
+            el.style.opacity = '0';
+            setTimeout(() => {
+              el.innerText = roasted[index];
+              el.dataset.roasted = "true";
+              el.style.opacity = '1';
+              el.style.color = '#e52e71'; // Give it a slight brand color tint to indicate it was roasted
+            }, 300);
+          } else {
+            el.style.opacity = '1';
+          }
+        });
+      } else {
+        console.error("Funny Bone Error on batch:", response?.error);
+        if (i === 0) {
+          // Only alert on the first failure to avoid alert spam
+          alert("Funny Bone AI Error:\n\n" + (response?.error || "Unknown error occurred."));
+        }
+        targetElements.forEach(el => el.style.opacity = '1');
+      }
     }
   } catch (err) {
     console.error("Funny Bone Extension Error:", err);
-    targetElements.forEach(el => el.style.opacity = '1');
+    alert("Funny Bone Extension Error:\n\n" + err.message);
+    validElements.forEach(el => el.style.opacity = '1');
   } finally {
     isRoasting = false;
   }

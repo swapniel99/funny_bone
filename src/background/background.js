@@ -20,7 +20,9 @@ async function handleRoasting(texts) {
 
   const prompt = `You are a witty, sarcastic, and roasting AI. The user will provide a JSON array of text strings from a webpage. 
 Rewrite each string to make it subtly funny, sarcastic, and roasting. Keep the length and core meaning somewhat similar if possible, but make it entertaining. 
-IMPORTANT: Return ONLY a valid JSON array of strings in the exact same order. Do not wrap it in markdown block quotes.`;
+CRITICAL RULES:
+1. You MUST rewrite the text in the exact SAME LANGUAGE it was provided in (e.g., if it's Gujarati, respond in Gujarati; if French, respond in French).
+2. Return ONLY a valid JSON array of strings in the exact same order. Do not wrap it in markdown block quotes.`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
