@@ -95,6 +95,10 @@ async function startRoastSelection() {
   if (!text) return;
   if (isRoasting) return;
   
+  // Capture and clone the user's exact selection range BEFORE making any async network calls
+  // Otherwise clicking anywhere on the page while loading will destroy the selection!
+  const range = selection.getRangeAt(0).cloneRange();
+  
   isRoasting = true;
 
   try {
@@ -107,8 +111,7 @@ async function startRoastSelection() {
     if (response && response.success && response.roastedTexts && response.roastedTexts.length > 0) {
       const roastedText = response.roastedTexts[0];
 
-      // Replace the selected text in the DOM
-      const range = selection.getRangeAt(0);
+      // Replace the selected text in the DOM using our cached range
       range.deleteContents();
       
       const span = document.createElement('span');
