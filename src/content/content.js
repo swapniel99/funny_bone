@@ -17,10 +17,10 @@ chrome.storage.sync.get(['isAutoRoastEnabled'], (result) => {
 
 async function startRoast() {
   isRoasting = true;
-  
+
   // Target title, paragraphs and headers
   const elements = Array.from(document.querySelectorAll('title, p, h1, h2, h3, h4, h5, h6'));
-  
+
   // Filter for elements that actually have text and haven't been roasted
   const validElements = elements.filter(el => {
     const text = el.innerText?.trim();
@@ -32,9 +32,9 @@ async function startRoast() {
     return;
   }
 
-  // Process in batches of 40 to avoid massive payloads
-  const CHUNK_SIZE = 40;
-  
+  // Process in batches of 10 to avoid massive payloads
+  const CHUNK_SIZE = 10;
+
   try {
     for (let i = 0; i < validElements.length; i += CHUNK_SIZE) {
       const targetElements = validElements.slice(i, i + CHUNK_SIZE);
