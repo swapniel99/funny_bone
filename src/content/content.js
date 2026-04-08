@@ -20,8 +20,12 @@ chrome.storage.sync.get(['isAutoRoastEnabled'], (result) => {
 async function startRoast() {
   isRoasting = true;
 
-  // Target title, paragraphs and headers
-  const elements = Array.from(document.querySelectorAll('title, p, h1, h2, h3, h4, h5, h6'));
+  const result = await chrome.storage.sync.get(['roastParagraphs']);
+  const roastParas = result.roastParagraphs ?? true;
+
+  // Target title and headers. Conditionally include paragraphs based on settings.
+  const selector = roastParas ? 'title, p, h1, h2, h3, h4, h5, h6' : 'title, h1, h2, h3, h4, h5, h6';
+  const elements = Array.from(document.querySelectorAll(selector));
 
   // Filter for elements that actually have text and haven't been roasted
   const validElements = elements.filter(el => {

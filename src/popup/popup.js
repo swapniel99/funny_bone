@@ -1,11 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
   const globalToggle = document.getElementById('globalToggle');
+  const paragraphToggle = document.getElementById('paragraphToggle');
   const roastBtn = document.getElementById('roastBtn');
 
   // Load the current state
-  chrome.storage.sync.get(['isAutoRoastEnabled'], (result) => {
+  chrome.storage.sync.get(['isAutoRoastEnabled', 'roastParagraphs'], (result) => {
     const isEnabled = result.isAutoRoastEnabled ?? false;
+    const roastParas = result.roastParagraphs ?? true;
+    
     globalToggle.checked = isEnabled;
+    paragraphToggle.checked = roastParas;
     updateButtonState(isEnabled);
   });
 
@@ -19,6 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isEnabled) {
       triggerRoast({ auto: true });
     }
+  });
+
+  paragraphToggle.addEventListener('change', (e) => {
+    chrome.storage.sync.set({ roastParagraphs: e.target.checked });
   });
 
   // Handle settings button click
