@@ -66,13 +66,22 @@ CRITICAL RULES:
 
   try {
     // Attempt to parse the response as JSON (could be wrapped in ```json)
-    const cleanedContent = content.replace(/```json/g, '').replace(/```/g, '').trim();
+    let cleanedContent = content.replace(/```json/gi, '').replace(/```/g, '').trim();
+    
+    // Extract everything between the first '[' and the last ']'
+    const startIndex = cleanedContent.indexOf('[');
+    const endIndex = cleanedContent.lastIndexOf(']');
+    if (startIndex !== -1 && endIndex !== -1) {
+      cleanedContent = cleanedContent.substring(startIndex, endIndex + 1);
+    }
+
     const resultArr = JSON.parse(cleanedContent);
     if (!Array.isArray(resultArr) || resultArr.length !== texts.length) {
       throw new Error('Invalid output format from AI.');
     }
     return resultArr;
   } catch (err) {
+    console.error("Raw AI Output:", content);
     throw new Error('Failed to parse the roasted text array from OpenAI output.');
   }
 }
