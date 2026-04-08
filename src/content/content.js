@@ -35,16 +35,16 @@ async function startRoast() {
   // Process in batches of 40 to avoid massive payloads
   const CHUNK_SIZE = 40;
   
-  // Show a loading state on all elements immediately
-  validElements.forEach(el => {
-    el.style.transition = 'opacity 0.3s';
-    el.style.opacity = '0.5';
-  });
-
   try {
     for (let i = 0; i < validElements.length; i += CHUNK_SIZE) {
       const targetElements = validElements.slice(i, i + CHUNK_SIZE);
       const texts = targetElements.map(el => el.innerText.trim());
+
+      // Show a loading state on the elements actively being processed in this chunk
+      targetElements.forEach(el => {
+        el.style.transition = 'opacity 0.3s';
+        el.style.opacity = '0.5';
+      });
 
       const response = await chrome.runtime.sendMessage({
         action: 'roastTextNodes',
