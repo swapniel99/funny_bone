@@ -48,6 +48,7 @@ async function startRoast() {
 
       const response = await chrome.runtime.sendMessage({
         action: 'roastTextNodes',
+        pageTitle: document.title,
         texts: texts
       });
 
