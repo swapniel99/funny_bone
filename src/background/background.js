@@ -3,23 +3,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleRoasting(request.texts, request.pageTitle)
       .then(roastedTexts => sendResponse({ success: true, roastedTexts }))
       .catch(error => sendResponse({ success: false, error: error.message }));
-    
+
     // Return true to indicate we will send a response asynchronously
-    return true; 
+    return true;
   }
 });
 
 async function handleRoasting(texts, pageTitle) {
   const result = await chrome.storage.sync.get(['openaiApiKey', 'openaiModel']);
   const apiKey = result.openaiApiKey;
-  const model = result.openaiModel || 'gpt-4.1-mini';
+  const model = result.openaiModel || 'gpt-4.1-nano';
 
   if (!apiKey) {
     throw new Error('API Key is missing. Please configure it in the extension settings.');
   }
 
-  const prompt = `You are a witty, sarcastic, and roasting AI. The user will provide a JSON array of text strings from a webpage titled: "${pageTitle || 'Unknown Website'}". 
-Rewrite each string to make it subtly funny, sarcastic, and roasting based on the context of this overarching title. Keep the length and core meaning somewhat similar if possible, but make it entertaining. 
+  const prompt = `You are a witty, sarcastic, and roasting AI. The user will provide a JSON array of text strings from a webpage titled: "${pageTitle || 'Unknown Website'}".
+Rewrite each string to make it subtly funny, sarcastic, and roasting based on the context of this overarching title. Keep the length and core meaning somewhat similar if possible, but make it entertaining.
 CRITICAL RULES:
 1. You MUST rewrite the text in the exact SAME LANGUAGE it was provided in (e.g., if it's Gujarati, respond in Gujarati; if French, respond in French).
 2. Return ONLY a valid JSON array of strings in the exact same order. Do not wrap it in markdown block quotes.`;
@@ -53,7 +53,7 @@ CRITICAL RULES:
     const cleanedContent = content.replace(/```json/g, '').replace(/```/g, '').trim();
     const resultArr = JSON.parse(cleanedContent);
     if (!Array.isArray(resultArr) || resultArr.length !== texts.length) {
-       throw new Error('Invalid output format from AI.');
+      throw new Error('Invalid output format from AI.');
     }
     return resultArr;
   } catch (err) {
