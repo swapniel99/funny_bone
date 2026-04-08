@@ -39,7 +39,8 @@ async function startRoast() {
   }
 
   // Process in batches to avoid massive payloads
-  const CHUNK_SIZE = 5;
+  // Headers-only passes can handle larger batches since the total tokens are fewer.
+  const CHUNK_SIZE = roastParas ? 5 : 10;
 
   try {
     for (let i = 0; i < validElements.length; i += CHUNK_SIZE) {
