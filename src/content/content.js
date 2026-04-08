@@ -4,6 +4,8 @@ let isRoasting = false;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'triggerRoast' && !isRoasting) {
     startRoast();
+  } else if (request.action === 'triggerRoastSelection' && !isRoasting) {
+    startRoastSelection();
   }
 });
 
@@ -81,6 +83,56 @@ async function startRoast() {
     console.error("Funny Bone Extension Error:", err);
     alert("Funny Bone Extension Error:\n\n" + err.message);
     validElements.forEach(el => el.style.opacity = '1');
+  } finally {
+    isRoasting = false;
+  }
+}
+
+async function startRoastSelection() {
+  const selection = window.getSelection();
+  const text = selection.toString().trim();
+
+  if (!text) return;
+  if (isRoasting) return;
+  
+  isRoasting = true;
+
+  try {
+    const response = await chrome.runtime.sendMessage({
+      action: 'roastTextNodes',
+      pageTitle: document.title,
+      texts: [text]
+    });
+
+    if (response && response.success && response.roastedTexts && response.roastedTexts.length > 0) {
+      const roastedText = response.roastedTexts[0];
+
+      // Replace the selected text in the DOM
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      
+      const span = document.createElement('span');
+      span.innerText = roastedText;
+      span.style.color = '#e52e71';
+      span.dataset.roasted = "true";
+      span.style.transition = 'opacity 0.3s';
+      span.style.opacity = '0';
+      
+      range.insertNode(span);
+      
+      // Fade it in to match aesthetics
+      setTimeout(() => {
+        span.style.opacity = '1';
+      }, 50);
+      
+      selection.removeAllRanges();
+    } else {
+      console.error("Funny Bone Error on selection:", response?.error);
+      alert("Funny Bone AI Error:\n\n" + (response?.error || "Unknown error occurred."));
+    }
+  } catch (err) {
+    console.error("Funny Bone Extension Error:", err);
+    alert("Funny Bone Extension Error:\n\n" + err.message);
   } finally {
     isRoasting = false;
   }

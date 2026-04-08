@@ -1,3 +1,19 @@
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: "roastSelection",
+    title: "Roast Selected Text",
+    contexts: ["selection"]
+  });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === "roastSelection") {
+    chrome.tabs.sendMessage(tab.id, {
+      action: 'triggerRoastSelection'
+    });
+  }
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'roastTextNodes') {
     handleRoasting(request.texts, request.pageTitle)
