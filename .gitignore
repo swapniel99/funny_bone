@@ -1,0 +1,6 @@
+.vscode/
+node_modules/
+*.crx
+key.pem
+.claude/
+.DS_Store

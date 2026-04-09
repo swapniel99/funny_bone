@@ -25,6 +25,29 @@ Since this is a developer version, you'll need to install it as an unpacked exte
 5. Select the `funny_bone` project folder.
 6. Click the extension icon in your toolbar and pin **Funny Bone**.
 
+## 🏗️ Development & Building
+
+This project includes a Makefile for easy building and development:
+
+```bash
+make install      # Install npm dependencies
+make build        # Build the .crx package for distribution
+make clean        # Remove build artifacts
+make dev          # Watch mode: auto-rebuild on file changes (requires nodemon)
+make lint         # Lint JavaScript files with ESLint
+make verify       # Verify project structure
+make distribute   # Build and show distribution instructions
+make help         # Show all available commands
+```
+
+**Quick Start for Development:**
+```bash
+make install      # Install dependencies once
+make dev          # Start watching for changes
+```
+
+The `build` command creates a `funny-bone.crx` file that can be distributed and installed directly by dragging into `chrome://extensions/`.
+
 ## ⚙️ Configuration
 
 1. Click the **Funny Bone** extension icon.
