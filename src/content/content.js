@@ -20,8 +20,9 @@ chrome.storage.sync.get(['isAutoRoastEnabled'], (result) => {
 async function startRoast() {
   isRoasting = true;
 
-  const result = await chrome.storage.sync.get(['roastParagraphs']);
+  const result = await chrome.storage.sync.get(['roastParagraphs', 'colorizeRoastedText']);
   const roastParas = result.roastParagraphs ?? true;
+  const colorize = result.colorizeRoastedText ?? true;
 
   // Target title and headers. Conditionally include paragraphs based on settings.
   const selector = roastParas ? 'title, p, h1, h2, h3, h4, h5, h6' : 'title, h1, h2, h3, h4, h5, h6';
@@ -69,7 +70,9 @@ async function startRoast() {
               el.innerHTML = roasted[index];
               el.dataset.roasted = "true";
               el.style.opacity = '1';
-              el.style.color = '#e52e71'; // Give it a slight brand color tint to indicate it was roasted
+              if (colorize) {
+                el.style.color = '#e52e71'; // Give it a slight brand color tint to indicate it was roasted
+              }
             }, 300);
           } else {
             el.style.opacity = '1';
@@ -109,6 +112,9 @@ async function startRoastSelection() {
   isRoasting = true;
 
   try {
+    const settings = await chrome.storage.sync.get(['colorizeRoastedText']);
+    const colorize = settings.colorizeRoastedText ?? true;
+
     const response = await chrome.runtime.sendMessage({
       action: 'roastTextNodes',
       pageTitle: document.title,
@@ -123,7 +129,9 @@ async function startRoastSelection() {
 
       const span = document.createElement('span');
       span.innerHTML = roastedText;
-      span.style.color = '#e52e71';
+      if (colorize) {
+        span.style.color = '#e52e71';
+      }
       span.dataset.roasted = "true";
       span.style.transition = 'opacity 0.3s';
       span.style.opacity = '0';
