@@ -2,6 +2,8 @@
 
 Funny Bone is a sleek, dark-themed Chrome Extension that uses OpenAI to rewrite webpage content in a subtle, sarcastic, and roasting tone. It intelligently preserves hyperlinks and original language while injecting a healthy dose of wit into your browsing experience.
 
+[![Funny Bone AI Demo](https://img.youtube.com/vi/WJ56f0IdsVg/maxresdefault.jpg)](https://www.youtube.com/watch?v=WJ56f0IdsVg)
+
 ## ✨ Features
 
 - **Global Toggle**: Turn the "Auto-Roast" mode on/off from the extension menu.
