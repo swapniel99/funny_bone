@@ -43,7 +43,7 @@ async function startRoast() {
     const elements = Array.from(document.querySelectorAll(selector));
 
     const validElements = elements.filter(el => {
-      const text = el.innerText?.trim();
+      const text = (el.innerText || el.textContent)?.trim();
       return text && text.length > 10 && !el.dataset.roasted;
     });
 
