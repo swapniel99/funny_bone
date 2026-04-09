@@ -50,8 +50,10 @@ async function startRoast() {
 
       // Show a loading state on the elements actively being processed in this chunk
       targetElements.forEach(el => {
-        el.style.transition = 'opacity 0.3s';
-        el.style.opacity = '0.5';
+        if (colorize) {
+          el.style.transition = 'opacity 0.3s';
+          el.style.opacity = '0.5';
+        }
       });
 
       const response = await chrome.runtime.sendMessage({
