@@ -29,7 +29,7 @@ Since this is a developer version, you'll need to install it as an unpacked exte
 1. Click the **Funny Bone** extension icon.
 2. Click the **Settings (⚙️)** icon in the top right of the popup.
 3. Enter your **OpenAI API Key**.
-4. (Optional) Specify your preferred model (e.g., `gpt-4.1-mini`).
+4. (Optional) Specify your preferred model (e.g., `gpt-4.1-nano`).
 5. Click **Save Settings**.
 
 ## 🚀 Usage

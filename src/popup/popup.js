@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get(['isAutoRoastEnabled', 'roastParagraphs'], (result) => {
     const isEnabled = result.isAutoRoastEnabled ?? false;
     const roastParas = result.roastParagraphs ?? true;
-    
+
     globalToggle.checked = isEnabled;
     paragraphToggle.checked = roastParas;
     updateButtonState(isEnabled);
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isEnabled = e.target.checked;
     chrome.storage.sync.set({ isAutoRoastEnabled: isEnabled });
     updateButtonState(isEnabled);
-    
+
     // Notify the active tab if we just turned it on
     if (isEnabled) {
       triggerRoast({ auto: true });
