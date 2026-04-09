@@ -54,18 +54,19 @@ async function startRoast() {
 
     const currentUrl = window.location.href.split('#')[0];
     let pageCache = {};
+    let cacheQueuePromise = Promise.resolve();
 
     if (enableCaching) {
       console.log("Funny Bone: Checking cache for:", currentUrl);
       const cacheData = await storage.local.get('funnyBoneCache');
       const fullCache = cacheData.funnyBoneCache || {};
-      
+
       if (fullCache[currentUrl]) {
         const entry = fullCache[currentUrl];
         if (Date.now() - entry.timestamp < 24 * 60 * 60 * 1000) {
           pageCache = entry.roasts || {};
           console.log("Funny Bone: Valid cache found with", Object.keys(pageCache).length, "items.");
-          
+
           validElements.forEach(el => {
             const originalHtml = el.innerHTML.trim();
             if (pageCache[originalHtml]) {
@@ -86,10 +87,19 @@ async function startRoast() {
     }
 
     console.log(`Funny Bone: ${remainingElements.length} elements need roasting.`);
-    const CHUNK_SIZE = roastParas ? 5 : 10;
+    const CHUNK_SIZE = roastParas ? 3 : 10;
+    const MAX_CONCURRENT = 3;
 
+    // 1. Split remaining elements into chunks first
+    const allChunks = [];
     for (let i = 0; i < remainingElements.length; i += CHUNK_SIZE) {
-      const targetElements = remainingElements.slice(i, i + CHUNK_SIZE);
+      allChunks.push(remainingElements.slice(i, i + CHUNK_SIZE));
+    }
+
+    const chunkPromises = [];
+    const activePromises = new Set();
+
+    for (const targetElements of allChunks) {
       const texts = targetElements.map(el => el.innerHTML.trim());
 
       targetElements.forEach(el => {
@@ -99,52 +109,83 @@ async function startRoast() {
         }
       });
 
-      const response = await chrome.runtime.sendMessage({
+      const chunkPromise = chrome.runtime.sendMessage({
         action: 'roastTextNodes',
         pageTitle: document.title,
         texts: texts
+      }).then((response) => {
+        if (response && response.success && response.roastedTexts) {
+          const roasted = response.roastedTexts;
+          targetElements.forEach((el, index) => {
+            if (roasted[index]) {
+              const originalHtml = texts[index];
+              const roastedHtml = roasted[index];
+
+              pageCache[originalHtml] = roastedHtml;
+
+              el.style.opacity = '0';
+              setTimeout(() => {
+                el.innerHTML = roastedHtml;
+                el.dataset.roasted = "true";
+                el.style.opacity = '1';
+                if (colorize) el.style.color = '#e52e71';
+              }, 300);
+            } else {
+              el.style.opacity = '1';
+            }
+          });
+
+          // Save progress incrementally using a promise queue to prevent race conditions
+          if (enableCaching) {
+            cacheQueuePromise = cacheQueuePromise.then(async () => {
+              const cacheData = await storage.local.get('funnyBoneCache');
+              const fullCache = cacheData.funnyBoneCache || {};
+              
+              if (!fullCache[currentUrl]) {
+                 fullCache[currentUrl] = { timestamp: Date.now(), roasts: {} };
+              } else {
+                 fullCache[currentUrl].timestamp = Date.now();
+              }
+              
+              Object.assign(fullCache[currentUrl].roasts, pageCache);
+              
+              // Keep only 50 most recent
+              const urls = Object.keys(fullCache);
+              if (urls.length > 50) {
+                const oldest = urls.sort((a, b) => fullCache[a].timestamp - fullCache[b].timestamp)[0];
+                delete fullCache[oldest];
+              }
+              await storage.local.set({ funnyBoneCache: fullCache });
+              console.log("Funny Bone: Cache incrementally updated.");
+            });
+          }
+        } else {
+          console.error("Funny Bone AI Error:", response?.error);
+          targetElements.forEach(el => el.style.opacity = '1');
+        }
+      }).catch(err => {
+        console.error("Funny Bone Messaging Error:", err);
+        targetElements.forEach(el => el.style.opacity = '1');
       });
 
-      if (response && response.success && response.roastedTexts) {
-        const roasted = response.roastedTexts;
-        targetElements.forEach((el, index) => {
-          if (roasted[index]) {
-            const originalHtml = texts[index];
-            const roastedHtml = roasted[index];
-            
-            pageCache[originalHtml] = roastedHtml;
+      // Wrap the promise so it automatically removes itself from the active pool once complete
+      const activeP = chunkPromise.finally(() => activePromises.delete(activeP));
 
-            el.style.opacity = '0';
-            setTimeout(() => {
-              el.innerHTML = roastedHtml;
-              el.dataset.roasted = "true";
-              el.style.opacity = '1';
-              if (colorize) el.style.color = '#e52e71';
-            }, 300);
-          } else {
-            el.style.opacity = '1';
-          }
-        });
+      activePromises.add(activeP);
+      chunkPromises.push(activeP);
 
-        // Save progress to cache after every successful batch
-        if (enableCaching) {
-          const cacheData = await storage.local.get('funnyBoneCache');
-          const fullCache = cacheData.funnyBoneCache || {};
-          fullCache[currentUrl] = { timestamp: Date.now(), roasts: pageCache };
-          
-          // Keep only 50 most recent
-          const urls = Object.keys(fullCache);
-          if (urls.length > 50) {
-            const oldest = urls.sort((a, b) => fullCache[a].timestamp - fullCache[b].timestamp)[0];
-            delete fullCache[oldest];
-          }
-          await storage.local.set({ funnyBoneCache: fullCache });
-          console.log("Funny Bone: Cache updated per-batch.");
-        }
-      } else {
-        console.error("Funny Bone AI Error:", response?.error);
-        targetElements.forEach(el => el.style.opacity = '1');
+      // If we hit our concurrent limit, wait for at least one to finish before continuing
+      if (activePromises.size >= MAX_CONCURRENT) {
+        await Promise.race(activePromises);
       }
+    }
+
+    // Wait for any remaining active chunks to finish processing
+    await Promise.all(chunkPromises);
+
+    // Ensure all incremental cache writes have finished safely
+    if (enableCaching) {
+      await cacheQueuePromise;
     }
   } catch (err) {
     console.error("Funny Bone Extension Error:", err);
