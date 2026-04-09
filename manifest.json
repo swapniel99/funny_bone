@@ -3,6 +3,7 @@
   "name": "Funny Bone",
   "version": "1.0",
   "description": "An AI Chrome extension that turns the contents of webpages funny, sarcastic, and roasting.",
+  "author": "Swapnil Gusani",
   "permissions": [
     "activeTab",
     "storage",
