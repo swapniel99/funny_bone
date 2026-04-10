@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (result.openaiApiKey) apiKeyInput.value = result.openaiApiKey;
     if (result.openaiModel) modelNameInput.value = result.openaiModel;
     else modelNameInput.value = 'gpt-4.1-nano'; // Default model
-    
-    colorizeToggle.checked = result.colorizeRoastedText ?? true;
+
+    colorizeToggle.checked = result.colorizeRoastedText ?? false;
     cacheToggle.checked = result.enableCaching ?? true;
   });
 
