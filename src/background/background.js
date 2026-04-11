@@ -49,8 +49,6 @@ CRITICAL RULES:
     },
     body: JSON.stringify({
       model: model,
-      response_format: { type: "json_object" },
-      max_tokens: 8000,
       messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: JSON.stringify(texts) }
@@ -65,9 +63,15 @@ CRITICAL RULES:
   }
 
   const data = await response.json();
-  const content = data.choices[0].message.content;
+  let content = data.choices[0].message.content;
 
   try {
+    // Clean up potential markdown formatting that some models return
+    content = content.trim();
+    if (content.startsWith('```')) {
+      content = content.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?\s*```$/i, '').trim();
+    }
+
     const parsedObject = JSON.parse(content);
     const resultArr = parsedObject.roastedTexts;
 
