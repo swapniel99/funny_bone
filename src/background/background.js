@@ -28,7 +28,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 async function handleRoasting(texts, pageTitle) {
   const result = await chrome.storage.sync.get(['openaiApiKey', 'openaiModel']);
   const apiKey = result.openaiApiKey;
-  const model = result.openaiModel || 'gpt-4.1-nano';
+  const model = result.openaiModel || 'gpt-5.4-nano';
 
   if (!apiKey) {
     throw new Error('API Key is missing. Please configure it in the extension settings.');

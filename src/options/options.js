@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get(['openaiApiKey', 'openaiModel', 'colorizeRoastedText', 'enableCaching'], (result) => {
     if (result.openaiApiKey) apiKeyInput.value = result.openaiApiKey;
     if (result.openaiModel) modelNameInput.value = result.openaiModel;
-    else modelNameInput.value = 'gpt-4.1-nano'; // Default model
+    else modelNameInput.value = 'gpt-5.4-nano'; // Default model
 
     colorizeToggle.checked = result.colorizeRoastedText ?? false;
     cacheToggle.checked = result.enableCaching ?? true;
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Save settings
   saveBtn.addEventListener('click', () => {
     const apiKey = apiKeyInput.value.trim();
-    const modelName = modelNameInput.value.trim() || 'gpt-4.1-nano';
+    const modelName = modelNameInput.value.trim() || 'gpt-5.4-nano';
     const colorize = colorizeToggle.checked;
     const enableCaching = cacheToggle.checked;
 
